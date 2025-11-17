@@ -720,13 +720,6 @@ This report investigates the query: "${prompt}" using grounded web research with
 ## Body
 ${report}
 
-## Methodology
-
-Semantic chunking, grounded generation (Google Search tool), and schema-guided synthesis. Learnings were extracted from source content, deduplicated, and compiled.
-
-## Limitations
-Automated extraction may miss nuance or context from sources. Some links may be unavailable or rate-limited at retrieval time.
-
 ## Key Learnings
 ${learnings.map(learning => `- ${learning}`).join('\n')}
 
