@@ -185,7 +185,7 @@ deep-research-mcp-server/
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/shreyashkashyapanand01/minor_project_withUI.git
+    git clone https://github.com/shreyashkashyapanand01/collegeMinorProject1.git
     ```
 
 2. **Install dependencies:**
@@ -327,7 +327,7 @@ Optional providers (planned/behind flags): Exa/Tavily can be integrated later; F
 1) Clone and install
 
 ```bash
-git clone https://github.com/shreyashkashyapanand01/minor_project_withUI.git
+git clone https://github.com/shreyashkashyapanand01/collegeMinorProject1.git
 cd collegeMinorProject1
 npm i && npm run build
 ```
