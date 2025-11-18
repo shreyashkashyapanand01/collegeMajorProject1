@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Report Generator — Cyber Tech</title>
+
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    /* ---------- Palette & tokens ---------- */
+    :root{
+      --bg:#071027;
+      --card:#07192b;
+      --muted:#9aa7c7;
+      --glass: rgba(255,255,255,0.04);
+      --accent:#2bb7ff;
+      --accent-2:#47d1ff;
+      --success:#2ee6a7;
+      --danger:#ff6b6b;
+      --radius:14px;
+      --shadow: 0 12px 30px rgba(2,6,23,0.6);
+      --glass-border: rgba(111,190,255,0.08);
+    }
+
+    /* Light variant (user toggle) */
+    body.light {
+      --bg: #f4f8ff;
+      --card: #ffffff;
+      --muted: #5b6b84;
+      --glass: rgba(10,14,24,0.02);
+      --accent: #0066ff;
+      --accent-2: #00a1ff;
+      --shadow: 0 8px 24px rgba(17,24,39,0.06);
+      --glass-border: rgba(2, 55, 102, 0.06);
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, rgba(5,12,30,1) 0%, rgba(7,16,35,1) 100%);
+      color: #e6f0ff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    body.light {
+      background: linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
+      color:#0c1730;
+    }
+
+    .wrap {
+      max-width:1100px;
+      margin:28px auto;
+      padding:28px;
+    }
+
+    header.top {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .brand {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .logo {
+      width:48px;
+      height:48px;
+      border-radius:10px;
+      background: linear-gradient(135deg,var(--accent),var(--accent-2));
+      box-shadow: 0 6px 24px rgba(38,172,255,0.14), inset 0 -6px 18px rgba(0,0,0,0.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      color:#021126;
+      font-family: Inter, sans-serif;
+    }
+
+    h1.title {
+      font-size:20px;
+      margin:0;
+      letter-spacing:0.2px;
+    }
+
+    p.subtitle {
+      margin:0;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .controls {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    /* toggle */
+    .toggle {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:var(--glass);
+      border:1px solid var(--glass-border);
+      padding:8px 10px;
+      border-radius:999px;
+      cursor:pointer;
+    }
+    .toggle input{display:none}
+    .toggle .knob {
+      width:36px;height:20px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow:0 4px 16px rgba(43,183,255,0.18);
+      position:relative;transition:all .22s;
+    }
+    .toggle .knob.off { background:transparent; box-shadow:none; border:1px solid var(--glass-border);}
+
+    /* main layout */
+    .grid {
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:20px;
+    }
+
+    /* left panel (controls) */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:var(--radius);
+      padding:20px;
+      box-shadow:var(--shadow);
+      border: 1px solid var(--glass-border);
+    }
+
+    label {
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin-top:12px;
+    }
+
+    input[type="text"], input[type="number"], textarea, select {
+      width:100%;
+      padding:12px 12px;
+      margin-top:8px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));
+      color:inherit;
+      font-size:14px;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button { opacity:0.6 }
+
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      margin-top:16px;
+      border-radius:10px;
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:#04102a;
+      border:none;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow: 0 8px 30px rgba(47,160,250,0.12);
+    }
+
+    .btn.secondary {
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:var(--muted);
+      box-shadow:none;
+      font-weight:600;
+    }
+
+    /* simulated progress */
+    .progress-wrap {
+      margin-top:14px;
+      background: rgba(255,255,255,0.02);
+      border-radius:8px;
+      height:12px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .progress-bar {
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg,var(--accent), var(--accent-2));
+      transition: width .35s ease;
+    }
+    .progress-meta {
+      display:flex;
+      justify-content:space-between;
+      margin-top:8px;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    /* right panel (output) */
+    .output-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .output-area {
+      min-height: 420px;
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(0,6,18,0.3), rgba(0,6,18,0.16));
+      padding:18px;
+      border: 1px solid rgba(255,255,255,0.03);
+      overflow:auto;
+      color: #eaf6ff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+      font-size:14px;
+      line-height:1.6;
+      white-space: pre-wrap;
+    }
+
+    .output-actions {
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .tiny {
+      font-size:12px;color:var(--muted)
+    }
+
+    /* responsive */
+    @media (max-width:960px){
+      .grid{ grid-template-columns: 1fr; }
+      .logo{width:44px;height:44px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <h1 class="title">AI Research Console</h1>
+          <p class="subtitle">Deep, grounded research — instant reports</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div title="Toggle dark/light">
+          <label class="toggle" id="themeToggle">
+            <input type="checkbox" id="themeCheckbox" />
+            <div class="knob off" id="knob"></div>
+          </label>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn" id="generateBtn">Generate</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- left: inputs -->
+      <section class="card">
+        <label>Topic</label>
+        <input id="topic" type="text" placeholder="e.g. Use of AI in finance, healthcare..." />
+
+        <label>Depth (1 to 5)</label>
+        <input id="depth" type="number" min="1" max="10" value="2" />
+
+        <label>Breadth (2 to 10)</label>
+        <input id="breadth" type="number" min="1" max="10" value="2" />
+
+        <label style="margin-top:14px">Optional notes</label>
+        <textarea id="notes" rows="4" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit"></textarea>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
+          <button class="btn" id="startBtn">Start Research</button>
+          <button class="btn secondary" id="clearBtn" title="Clear output">Clear</button>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="progress-meta">
+            <div id="progressLabel" class="tiny">Idle</div>
+            <div id="progressPct" class="tiny">0%</div>
+          </div>
+          <div class="progress-wrap" aria-hidden>
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="tiny">Tip: Increase depth for deeper analysis (more time/calls).</div>
+      </section>
+
+      <!-- right: output -->
+      <section>
+        <div class="card">
+          <div class="output-head">
+            <div>
+              <strong>Generated Report</strong>
+              <div class="tiny" id="metaInfo">Status: idle</div>
+            </div>
+
+            <div class="output-actions">
+              <button class="btn secondary" id="downloadMd">Download .md</button>
+              <button class="btn" id="downloadPdf">Download PDF</button>
+            </div>
+          </div>
+
+          <div id="output" class="output-area">No report yet — press <strong>Start Research</strong>.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
